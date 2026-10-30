@@ -8,7 +8,7 @@ Adafruit_PWMServoDriver pca(0x40);
 // PCA9685設定
 #define SERVO_FREQ 50
 #define SERVO_MIN 150
-#define SERVO_MAX 600
+#define SERVO_MAX 550
 
 // ==========================
 // 角度設定（自由に変更可能）
