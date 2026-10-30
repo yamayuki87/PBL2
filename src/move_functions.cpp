@@ -14,14 +14,14 @@
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(PCA9685_ADDRESS);
 
 static const int homeAngles[NUM_SERVOS] = {
-  60,
-  5,
-  120,
-  7,
-  120,
-  125,
-  60,
-  127
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0
 };
 
 
@@ -35,18 +35,6 @@ void moveServo(uint8_t servo, int angle) {
 
 static void moveHome(uint8_t servo, int offset = 0) {
   moveServo(servo, homeAngles[servo] + offset);
-}
-
-static void moveAndWait(uint8_t servo, int offset, unsigned long waitMs) {
-  moveHome(servo, offset);
-  delay(waitMs);
-}
-
-static void moveDriveServos(int offset0, int offset2, int offset4, int offset6) {
-  moveAndWait(0, offset0, 10);
-  moveAndWait(2, offset2, 10);
-  moveAndWait(4, offset4, 10);
-  moveAndWait(6, offset6, 10);
 }
 
 void homeposition() {
@@ -73,41 +61,42 @@ void stop() {
 
 #define WAIT_TIME 300
 
+static void moveTrotPhase(
+  uint8_t liftServoA, int liftOffsetA, uint8_t hipServoA, int reachOffsetA,
+  uint8_t liftServoB, int liftOffsetB, uint8_t hipServoB, int reachOffsetB,
+  uint8_t stanceHipA, int driveOffsetA, uint8_t stanceHipB, int driveOffsetB
+) {
+  moveHome(liftServoA, liftOffsetA);
+  moveHome(liftServoB, liftOffsetB);
+  moveHome(stanceHipA, driveOffsetA);
+  moveHome(stanceHipB, driveOffsetB);
+  delay(WAIT_TIME);
+
+  moveHome(hipServoA, reachOffsetA);
+  moveHome(hipServoB, reachOffsetB);
+  delay(WAIT_TIME);
+
+  moveHome(liftServoA);
+  moveHome(liftServoB);
+  delay(WAIT_TIME);
+}
 
 void walk() {
   Serial.println("start walk");
 
-  // --- 左前(4,5) ---
-  moveAndWait(5, -WALK_LIFT, WAIT_TIME);
-  moveAndWait(4, WALK_REACH_FRONT, WAIT_TIME);
-  moveAndWait(5, 0, WAIT_TIME);
-  Serial.println("A");
+  // 左前(4,5)と右後(2,3)を動かし、右前・左後で支持する。
+  moveTrotPhase(
+    5, -WALK_LIFT, 4, WALK_REACH_FRONT,
+    3, WALK_LIFT, 2, -WALK_REACH_REAR - 10,
+    0, WALK_DRIVE, 6, -WALK_DRIVE
+  );
 
-  // --- 右前(0,1) ---
-  moveAndWait(1, WALK_LIFT, WAIT_TIME);
-  moveAndWait(0, -WALK_REACH_FRONT+5, WAIT_TIME);
-  moveAndWait(1, 0, WAIT_TIME);
-  Serial.println("B");
+  // 右前(0,1)と左後(6,7)を動かし、左前・右後で支持する。
+  moveTrotPhase(
+    1, WALK_LIFT, 0, -WALK_REACH_FRONT + 5,
+    7, -WALK_LIFT, 6, WALK_REACH_REAR,
+    4, -WALK_DRIVE, 2, WALK_DRIVE
+  );
 
-  // --- 前2脚を接地したまま駆動 ---
-  moveDriveServos(0, WALK_DRIVE, 0, -WALK_DRIVE);
-  Serial.println("C");
-  delay(300);
-
-  // --- 左後(6,7) ---
-  moveAndWait(7, -WALK_LIFT, WAIT_TIME);
-  moveAndWait(6, WALK_REACH_REAR, WAIT_TIME);
-  moveAndWait(7, 0, WAIT_TIME);
-  Serial.println("D");
-
-  // --- 右後(2,3) ---
-  moveAndWait(3, WALK_LIFT, WAIT_TIME);
-  moveAndWait(2, -WALK_REACH_REAR-10, WAIT_TIME);
-  moveAndWait(3, 0, WAIT_TIME);
-  Serial.println("E");
-
-  // --- 後ろ2脚を接地したまま駆動 ---
-  moveDriveServos(WALK_DRIVE, 0, -WALK_DRIVE, 0);
-  delay(WAIT_TIME);
   Serial.println("1 step completed.");
 }
