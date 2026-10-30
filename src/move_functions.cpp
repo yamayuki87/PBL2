@@ -1,8 +1,9 @@
-﻿#include <Arduino.h>
+#include <Adafruit_PWMServoDriver.h>
 #include "move_functions.h"
 
+
 #define SERVOMIN 140
-#define SERVOMAX 600
+#define SERVOMAX 550
 #define NUM_SERVOS 8
 
 
@@ -11,21 +12,6 @@
 #define WALK_REACH_REAR 30      
 #define WALK_DRIVE 25    
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(PCA9685_ADDRESS);
-const int trigPin = 9;
-const int echoPin = 10;
-
-//0番から右前根元、右前先、右後根元、右後先、左前根元、左前先、左後根元、左後先
-
-// static const int homeAngles[NUM_SERVOS] = {
-//   60,
-//   30,
-//   120,
-//   30,
-//   120,
-//   100,
-//   60,
-//   105
-// };
 
 static const int homeAngles[NUM_SERVOS] = {
   60,
@@ -71,27 +57,6 @@ void homeposition() {
   Serial.println("All servos set to home position.");
 }
 
-float readSonar() {
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-
-  long duration = pulseIn(echoPin, HIGH, 30000);
-  if (duration == 0) {
-    return 999.0;
-  }
-
-  return duration * 0.0343 / 2.0;
-}
-
-bool isGoal(float distance) {
-  if (distance < 5.0) {
-    return true;
-  }
-  return false;
-}
 
 
 void stop() {
@@ -107,37 +72,6 @@ void stop() {
 
 
 #define WAIT_TIME 300
-
-void rotate(unsigned int step, bool reverse) {
-  int rotateAngle = 30; // 旋回角度の設定
-  if (reverse) {
-    rotateAngle = -rotateAngle; // 逆方向の場合は角度を反転
-  }
-  while (step-- > 0) {
-    moveAndWait(5, -rotateAngle, WAIT_TIME);
-    moveAndWait(4, -rotateAngle, WAIT_TIME);
-    moveAndWait(5, 0, WAIT_TIME);
-
-    moveAndWait(3, -rotateAngle, WAIT_TIME);
-    moveAndWait(2, -rotateAngle, WAIT_TIME);
-    moveAndWait(3, 0, WAIT_TIME);
-
-    moveAndWait(1, rotateAngle, WAIT_TIME);
-    moveAndWait(0, -rotateAngle, WAIT_TIME);
-    moveAndWait(1, 0, WAIT_TIME);
-
-    moveAndWait(7, rotateAngle, WAIT_TIME);
-    moveAndWait(6, -rotateAngle, WAIT_TIME);
-    moveAndWait(7, 0, WAIT_TIME);
-
-    moveDriveServos(0, 0, 0, 0);
-    Serial.println("1 step of rotate completed.");
-    delay(300);
-  }
-}
-
-
-#define WAIT_TIME 200
 
 
 void walk() {

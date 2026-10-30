@@ -1,5 +1,5 @@
-#ifndef __HOKOU_SENKAI_H__
-#define __HOKOU_SENKAI_H__
+#ifndef __HOKOU_H__
+#define __HOKOU_H__
 
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
@@ -13,10 +13,9 @@ extern const int echoPin;
 
 void homeposition();
 float readSonar();
-bool isGoal(float distance);
+//bool isGoal(float distance);
 void stop();
-void rotate(unsigned int step , bool reverse = false);
 void walk();
 void moveServo(uint8_t servo, int angle);
 
-#endif // __HOKOU_SENKAI_H__
+#endif // __HOKOU_H__
