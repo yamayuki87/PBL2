@@ -1,66 +1,172 @@
+
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
-#include "move_functions.h"
 
+Adafruit_PWMServoDriver pca(0x40);
 
+// PCA9685設定
+#define SERVO_FREQ 50
+#define SERVO_MIN 150
+#define SERVO_MAX 600
 
-constexpr uint8_t STAIR_COUNT = 3;
-constexpr uint8_t APPROACH_CYCLES = 0;       // 最初の段までの平地歩行
-constexpr uint8_t UP_CYCLES_PER_STAIR = 1;   // 1段を進むトロット周期数（要実測）
-constexpr uint8_t TOP_CYCLES = 2;            // 3段上ったあとの平地歩行（要実測）
-constexpr uint8_t DOWN_CYCLES_PER_STAIR = 1; // 1段を下る周期数（要実測）
-constexpr uint8_t EXIT_CYCLES = 1;           // 下り終わったあとの平地歩行
+// ==========================
+// 角度設定（自由に変更可能）
+// ==========================
 
-static bool finished = false;
+// 前後サーボの初期角度
+int FRONT_HOME = 90;
 
-static void repeatCycles(void (*gait)(), uint8_t count) {
-  for (uint8_t i = 0; i < count; ++i) {
-    gait();
-  }
+// 回転角度
+int ROTATE_ANGLE = 45;
+
+// 上下サーボの初期角度
+int DOWN_ANGLE = 90;
+
+// 脚を上げる角度
+int UP_ANGLE = 70;
+
+// 動作時間
+int MOVE_TIME = 300;
+
+// ==========================
+// サーボ個別制御
+// ==========================
+
+void motor(int ch, int angle) {
+
+  angle = constrain(angle, 0, 180);
+
+  int pulse = map(angle, 0, 180,
+                  SERVO_MIN, SERVO_MAX);
+
+  pca.setPWM(ch, 0, pulse);
 }
 
-void setup() {
-  Serial.begin(9600);
-  Wire.begin();
-  pwm.begin();
-  pwm.setPWMFreq(50);
+// ==========================
+// 初期位置
+// ==========================
 
-  if (!MOTION_ENABLED) {
-    Serial.println("Safety lock: homeAngles, leg directions and travel clearance must be checked.");
-    Serial.println("Set MOTION_ENABLED = true after checking on a raised robot.");
-    return;
+void homePosition() {
+
+  for (int ch = 0; ch < 8; ch++) {
+    motor(ch, FRONT_HOME);
   }
 
-  homeposition();
   delay(1000);
 }
 
+// ==========================
+// グループA
+// 左前 CH0・CH1
+// 右後 CH4・CH5
+// ==========================
+
+// Aの脚を上げる
+void liftA() {
+  motor(1, UP_ANGLE);
+  motor(5, UP_ANGLE);
+}
+
+// Aを45度回転
+void rotateA() {
+  motor(0, FRONT_HOME + ROTATE_ANGLE);
+  motor(4, FRONT_HOME + ROTATE_ANGLE);
+}
+
+// Aの脚を下ろす
+void lowerA() {
+  motor(1, DOWN_ANGLE);
+  motor(5, DOWN_ANGLE);
+}
+
+// Aを元の角度に戻す
+void resetA() {
+  motor(0, FRONT_HOME);
+  motor(4, FRONT_HOME);
+}
+
+// ==========================
+// グループB
+// 右前 CH6・CH7
+// 左後 CH2・CH3
+// ==========================
+
+// Bの脚を上げる
+void liftB() {
+  motor(7, UP_ANGLE);
+  motor(3, UP_ANGLE);
+}
+
+// Bを45度回転
+void rotateB() {
+  motor(6, FRONT_HOME + ROTATE_ANGLE);
+  motor(2, FRONT_HOME + ROTATE_ANGLE);
+}
+
+// Bの脚を下ろす
+void lowerB() {
+  motor(7, DOWN_ANGLE);
+  motor(3, DOWN_ANGLE);
+}
+
+// Bを元の角度に戻す
+void resetB() {
+  motor(6, FRONT_HOME);
+  motor(2, FRONT_HOME);
+}
+
+// ==========================
+// 初期設定
+// ==========================
+
+void setup() {
+
+  Wire.begin();
+
+  pca.begin();
+  pca.setPWMFreq(SERVO_FREQ);
+
+  delay(500);
+
+  homePosition();
+
+  // 最初にAグループを上げる
+  liftA();
+  delay(MOVE_TIME);
+}
+
+// ==========================
+// トロット歩容
+// ==========================
+
 void loop() {
-  if (!MOTION_ENABLED || finished) return;
-  finished = true; // Arduino loop() が繰り返されても再実行しない
 
-  Serial.println("Approaching stairs");
-  repeatCycles(walk, APPROACH_CYCLES);
+  // ① Aグループを45度回転
+  rotateA();
+  delay(MOVE_TIME);
 
-  for (uint8_t step = 0; step < STAIR_COUNT; ++step) {
-    Serial.print("Ascending stair ");
-    Serial.println(step + 1);
-    repeatCycles(walkUp, UP_CYCLES_PER_STAIR);
-  }
+  // ② Aグループを下ろす
+  lowerA();
+  delay(MOVE_TIME);
 
-  Serial.println("Walking across the top");
-  repeatCycles(walk, TOP_CYCLES);
+  // ③ Aを元に戻しながらBを上げる
+  resetA();
+  liftB();
+  delay(MOVE_TIME);
 
-  for (uint8_t step = 0; step < STAIR_COUNT; ++step) {
-    Serial.print("Descending stair ");
-    Serial.println(step + 1);
-    repeatCycles(walkDown, DOWN_CYCLES_PER_STAIR);
-  }
+  // ④ Bグループを45度回転
+  rotateB();
+  delay(MOVE_TIME);
 
-  Serial.println("Moving away from stairs");
-  repeatCycles(walk, EXIT_CYCLES);
+  // ⑤ Bグループを下ろす
+  lowerB();
+  delay(MOVE_TIME);
 
-  stop();
-  Serial.println("Route completed.");
+  // ⑥ Bを元に戻しながらAを上げる
+  resetB();
+  liftA();
+  delay(MOVE_TIME);
+
+  // 最初に戻り、Aグループを回転させる
 }
