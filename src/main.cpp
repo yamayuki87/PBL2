@@ -59,7 +59,7 @@ void homePosition() {
   }
 }
 
-  delay(1000);
+  delay(10000);
 }
 
 // ==========================
@@ -106,8 +106,9 @@ void liftB() {
 
 // Bを45度回転
 void rotateB() {
-  motor(6, FRONT_HOME + ROTATE_ANGLE);
-  motor(2, FRONT_HOME + ROTATE_ANGLE);
+  motor(6, FRONT_HOME - ROTATE_ANGLE);
+  motor(2, FRONT_HOME - ROTATE_ANGLE);
+
 }
 
 // Bの脚を下ろす
