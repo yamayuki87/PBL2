@@ -17,17 +17,19 @@ Adafruit_PWMServoDriver pca(0x40);
 // 前後サーボの初期角度
 int FRONT_HOME = 90;
 
+int FRONT_HOME2 = 20;
+
 // 回転角度
 int ROTATE_ANGLE = 45;
 
 // 上下サーボの初期角度
-int DOWN_ANGLE = 90;
+int DOWN_ANGLE = 20;
 
 // 脚を上げる角度
-int UP_ANGLE = 70;
+int UP_ANGLE = 150;
 
 // 動作時間
-int MOVE_TIME = 300;
+int MOVE_TIME = 1500;
 
 // ==========================
 // サーボ個別制御
@@ -50,8 +52,12 @@ void motor(int ch, int angle) {
 void homePosition() {
 
   for (int ch = 0; ch < 8; ch++) {
+    if((ch%2)==1){
+      motor(ch, FRONT_HOME2);
+    }else{
     motor(ch, FRONT_HOME);
   }
+}
 
   delay(1000);
 }
