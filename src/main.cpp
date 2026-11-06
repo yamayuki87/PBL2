@@ -59,7 +59,7 @@ void homePosition() {
   }
 }
 
-  delay(10000);
+  delay(5000);
 }
 
 // ==========================
@@ -76,7 +76,7 @@ void liftA() {
 
 // Aを45度回転
 void rotateA() {
-  motor(0, FRONT_HOME + ROTATE_ANGLE);
+  motor(0, FRONT_HOME - ROTATE_ANGLE);
   motor(4, FRONT_HOME + ROTATE_ANGLE);
 }
 
@@ -106,7 +106,7 @@ void liftB() {
 
 // Bを45度回転
 void rotateB() {
-  motor(6, FRONT_HOME - ROTATE_ANGLE);
+  motor(6, FRONT_HOME + ROTATE_ANGLE);
   motor(2, FRONT_HOME - ROTATE_ANGLE);
 
 }
@@ -158,8 +158,10 @@ void loop() {
   delay(MOVE_TIME);
 
   // ③ Aを元に戻しながらBを上げる
-  resetA();
   liftB();
+  delay(20);
+  resetA();
+ 
   delay(MOVE_TIME);
 
   // ④ Bグループを45度回転
@@ -171,8 +173,10 @@ void loop() {
   delay(MOVE_TIME);
 
   // ⑥ Bを元に戻しながらAを上げる
-  resetB();
   liftA();
+  delay(20);
+  resetB();
+  
   delay(MOVE_TIME);
 
   // 最初に戻り、Aグループを回転させる
