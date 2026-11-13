@@ -17,13 +17,13 @@ Adafruit_PWMServoDriver pca(0x40);
 // 前後サーボの初期角度
 int FRONT_HOME = 90;
 
-int FRONT_HOME2 = 20;
+int FRONT_HOME2 = 0;// a
 
 // 回転角度
 int ROTATE_ANGLE = 45;
 
 // 上下サーボの初期角度
-int DOWN_ANGLE = 20;
+int DOWN_ANGLE = 0;
 
 // 脚を上げる角度
 int UP_ANGLE = 150;
