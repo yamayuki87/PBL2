@@ -17,16 +17,17 @@ Adafruit_PWMServoDriver pca(0x40);
 // 前後サーボの初期角度
 int FRONT_HOME = 90;
 
-int FRONT_HOME2 = 0;// a
+int FRONT_HOME2 = 10;// a
 
 // 回転角度
 int ROTATE_ANGLE = 45;
 
 // 上下サーボの初期角度
-int DOWN_ANGLE = 0;
+int DOWN_ANGLE = 10;
 
 // 脚を上げる角度
-int UP_ANGLE = 150;
+int UP_ANGLE = 120;
+int UP_ANGLE2 = 80;
 
 // 動作時間
 int MOVE_TIME = 1500;
@@ -71,13 +72,14 @@ void homePosition() {
 // Aの脚を上げる
 void liftA() {
   motor(1, UP_ANGLE);
-  motor(5, UP_ANGLE);
+  motor(5, UP_ANGLE2);
 }
 
 // Aを45度回転
 void rotateA() {
   motor(0, FRONT_HOME - ROTATE_ANGLE);
   motor(4, FRONT_HOME + ROTATE_ANGLE);
+  motor(5, UP_ANGLE);
 }
 
 // Aの脚を下ろす
@@ -101,14 +103,14 @@ void resetA() {
 // Bの脚を上げる
 void liftB() {
   motor(7, UP_ANGLE);
-  motor(3, UP_ANGLE);
+  motor(3, 90);
 }
 
 // Bを45度回転
 void rotateB() {
   motor(6, FRONT_HOME + ROTATE_ANGLE);
   motor(2, FRONT_HOME - ROTATE_ANGLE);
-
+  motor(3, UP_ANGLE);
 }
 
 // Bの脚を下ろす
@@ -159,7 +161,7 @@ void loop() {
 
   // ③ Aを元に戻しながらBを上げる
   liftB();
-  delay(20);
+  delay(500);
   resetA();
  
   delay(MOVE_TIME);
@@ -174,7 +176,7 @@ void loop() {
 
   // ⑥ Bを元に戻しながらAを上げる
   liftA();
-  delay(20);
+  delay(500);
   resetB();
   
   delay(MOVE_TIME);
